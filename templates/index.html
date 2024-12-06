@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reddit Summarizer</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        input, button { width: 100%; padding: 10px; margin: 5px 0; }
+        .summary { background: #f9f9f9; padding: 10px; border: 1px solid #ddd; margin-top: 10px; }
+        h2 { font-size: 1.5em; color: #333; }
+        .error { color: red; font-weight: bold; }
+        .loading { color: #007BFF; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Reddit Summarizer</h1>
+        <p>Enter a Reddit post URL to get a summary of it</p>
+        <form id="summarizerForm">
+            <input type="text" id="reddit-url" placeholder="Enter Reddit Post URL" required>
+            <button type="submit" id="summarize-button">Summarize</button>
+        </form>
+
+        <div id="error-message" class="error"></div>
+        <div id="summaries"></div>
+        <div id="loading-message" class="loading" style="display: none;"></div>
+    </div>
+
+    <script>
+        document.getElementById('summarizerForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const url = document.getElementById('reddit-url').value;
+            const errorMessage = document.getElementById('error-message');
+            const summariesContainer = document.getElementById('summaries');
+            const summarizeButton = document.getElementById('summarize-button');
+            const loadingMessage = document.getElementById('loading-message');
+
+            errorMessage.textContent = '';
+            summariesContainer.innerHTML = '';
+            loadingMessage.style.display = 'block';
+            summarizeButton.disabled = true;
+            summarizeButton.innerText = 'Summarizing...';
+
+            try {
+                const response = await fetch('/summarize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `url=${encodeURIComponent(url)}`
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const summaries = data.summaries;
+
+                    summaries.forEach(post => {
+                        const postElement = document.createElement('div');
+                        postElement.classList.add('summary');
+                        postElement.innerHTML = `<h2>${post.title}</h2><p>${post.summary}</p>`;
+                        summariesContainer.appendChild(postElement);
+                    });
+                } else {
+                    const data = await response.json();
+                    errorMessage.textContent = data.error || 'An error occurred.';
+                }
+            } catch (error) {
+                errorMessage.textContent = 'An error occurred while fetching the summary.';
+            } finally {
+                loadingMessage.style.display = 'none';
+                summarizeButton.disabled = false;
+                summarizeButton.innerText = 'Summarize';
+            }
+        });
+    </script>
+</body>
+</html>

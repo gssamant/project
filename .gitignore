@@ -1,0 +1,9 @@
+/datasets
+/venv
+__pycache__
+/.ipynb_checkpoints
+/saved_model_20241206-135116
+/tokenized_data
+/checkpoint.pt
+/code.ipynb
+/config.py
